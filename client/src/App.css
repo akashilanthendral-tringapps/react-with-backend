@@ -1,0 +1,35 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.emp-details-entry{
+  display:flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  align-items: center;
+}
+.emp-details-entry input{
+  width: 300px;
+  height: 35px;
+  font-size: 20px;
+  padding-left: 10px;
+  margin-bottom: 15px;
+  margin-top: 10px;
+}
+ button{
+  width: 315px;
+  height: 35px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+ button:hover{
+  cursor: pointer;
+}
+.result{
+  display:flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  align-items: center;
+  width: 100%;
+}
