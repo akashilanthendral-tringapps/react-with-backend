@@ -9,26 +9,33 @@ function App() {
   const [salary, setSalary] = useState(0);
   const [employeeList, setEmployeeList] = useState([]);
 
-  // const summa = () =>{
-  //   console.log("entered summa");
-  // };
+  
   const addEmployee = () => {
+  
     Axios.post("http://localhost:3001/create", {
       name: name,
       age: age,
       position : position,
       salary: salary
     }).then((response) => {
-      //
-       console.log("success" + response);
-    })
+       console.log(response.status)})
   };
   const getEmployee = () =>{
     Axios.get("http://localhost:3001/get").then((response) => {
-      //console.log(response);
-      document.getElementById("demo").innerHTML = response;
+      
+       setEmployeeList(response.data);
+       //displayData(response.data);
+      //console.log(response.data);
+      
     });
   }
+
+  function displayData(resObject){
+    const f = document.getElementById("fetchedData");
+    const resObjectList = resObject.map(emp => (
+      "Name: " + emp.NAME + ", id: "+ emp.ID));
+    f.innerHTML = resObjectList;
+  };
   return (
     <div className="App">
       <div className="emp-details-entry">
@@ -82,9 +89,28 @@ function App() {
         <button id="fetch" onClick={getEmployee}>
           fetch employees
         </button>
+        <div className="fetched">
+         
+            {
+              employeeList.map((emp, ind)=>{
+                return (
+                  <div className= "fetched-employees">
+                    <h3>ID: {emp.ID}</h3>
+                    <h3>Name: {emp.NAME}</h3>
+                    <h3>Age: {emp.AGE}</h3>
+                    <h3>Position: {emp.POSITION}</h3>
+                    <h3>Salary: {emp.SALARY}</h3>
+                  </div>
+                );
+              })
+            }
+         
+        </div>
+
+
       </div>
     </div>
   );
-}
+ }
 
 export default App;
