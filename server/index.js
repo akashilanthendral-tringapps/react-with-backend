@@ -40,15 +40,46 @@ app.post('/create', (req,resp) => {
             console.log(err);
         }else{
             try{
-        conn.query("INSERT INTO EMP (NAME, AGE, POSITION, SALARY) VALUES(?,?,?,?)",[name, age, position, salary], (err, result) => {
+                conn.query("SELECT count(*) as c FROM emp", (err, result) => {
+                    var count_ = JSON.parse(result[0].c + "");
+                    if(count_ == 0){
+                        conn.query("INSERT INTO emp values(?,?,?,?,?",[1, name, age, position, salary], (err, result) => {
+                            if(err){
+                                console.log("Error in inserting first value!");
+                            }else{
+                                
+                            }
+                        })
+                    }
+                })
+                conn.query("select max(id) as id from EMP", (err, result) => {
+                    if(err){
+                        console.log("error querying to get max value of id!"+ err);
+                    }else{
+                        var id_ = JSON.parse(result[0].id + "") + 1;
+                        console.log(result);
+                        console.log("------");
+                        // var id = result[0].'max(id)';
+                        conn.query("INSERT INTO EMP (ID, NAME, AGE, POSITION, SALARY) VALUES(?,?,?,?,?)",[id_, name, age, position, salary], (err, result) => {
         if(err){
             console.log("ERROR MESSAGES ____________________________");
             console.log(err);
             return resp.send({"error ":"connecting"})
         }else{
-            return resp.json({"Values inserted!" : result});
+            conn.query("select * from EMP", (err, result) => {
+                if(err){
+                    console.log("Error fetching data from DB")
+                }else{
+                    console.log(result);
+                    return resp.status(200).send(result);
+                }
+            });
         }
     })
+                        
+                    }
+                })
+        
     }catch(e){
         console.log(e);
     }
