@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql2 = require('mysql2');
 const cors = require('cors');
+const e = require('express');
 const app = express();
 const port = 3001;
 
@@ -15,14 +16,6 @@ const conn = mysql2.createConnection({
     password: "password"
 })
 
-// try{
-    
-// }catch(e){
-//     console.log("Error connecting to DB---------------");
-//     console.log(e);
-// }
-
-
 app.listen(port, () => {
     console.log(`Server started listening at port ${port}`);
 });
@@ -34,57 +27,50 @@ app.post('/create', (req,resp) => {
     const salary = req.body.salary;
 
     
+    
     conn.connect((err) => {
         if(err){
-            console.log("Error connecting!!!");
-            console.log(err);
+            console.log("ERROR CONNECTING TO DATABASE"+err);
         }else{
-            try{
-                conn.query("SELECT count(*) as c FROM emp", (err, result) => {
-                    var count_ = JSON.parse(result[0].c + "");
-                    console.log("count = "+count_);
-                    if(count_ != 0){
-                        conn.query("INSERT INTO emp values(?,?,?,?,?)",[count_ + 1, name, age, position, salary], (err, result) => {
+            
+            conn.query("SELECT COUNT(*) AS total FROM emp", (err, result) => {
+                if(err){
+                    console.log("ERROR: CANNOT FETCH COUNT(*) FROM DB"+ err);
+                }else{
+                    
+                    const countt = JSON.parse(result[0].total + "");
+                    //If there is no Data in DB
+                    //Add the data as the first element
+                    if(countt == 0){
+                        conn.query("INSERT INTO emp values(?,?,?,?,?)",[1, name, age, position, salary], (err, result) => {
                             if(err){
-                                console.log("Error in inserting first value!");
+                                console.log("while inserting employee details for ID = 1"+err);
                             }else{
-                                conn.query("select max(id) as id from EMP", (err, result) => {
+                                resp.json({"id_created":1});
+                            }
+                        });
+                    }//If employee data is already present
+                    else{
+                        conn.query("SELECT MAX(id) AS m FROM emp", (err,result) =>{
+                            if(err){
+                                console.log("ERROR FETCHING MAX(id) FROM emp: "+ err);
+                            }else{
+                                const maxx = JSON.parse(result[0].m + "") + 1;
+                                conn.query("INSERT INTO emp VALUES(?,?,?,?,?)", [maxx, name, age, position, salary], (err, result) => {
                                     if(err){
-                                        console.log("error querying to get max value of id!"+ err);
-                                    }else{  
-                                        var id_ = JSON.parse(result[0].id + "") + 1;
-                                        console.log(result);
-                                        console.log("------");
-                                        
-                                        conn.query("INSERT INTO EMP (ID, NAME, AGE, POSITION, SALARY) VALUES(?,?,?,?,?)",[id_, name, age, position, salary], (err, result) => {
-                                            if(err){        
-                                                console.log("ERROR MESSAGES ____________________________");
-                                                console.log(err);
-                                                return resp.send({"error ":"connecting"})
-                                            }else{
-                                                conn.query("select * from EMP", (err, result) => {
-                                                    if(err){
-                                                        console.log("Error fetching data from DB");
-                                                        return err;
-                                                    }else{
-                                                        console.log(result);
-                                                        return resp.status(200).send(result);
-                                                    }
-                                                });
-                                            }
-                                        })
-                        
+                                        console.log("ERROR INSERTING DATA INTO emp:"+ err);
+                                    }else{
+                                        resp.json({"id_created":maxx});
                                     }
                                 })
                             }
+                            
+
                         })
                     }
-                })
-                
-        
-    }catch(e){
-        console.log(e);
-    }
+
+                }
+            })
         }
     })
 })
@@ -100,5 +86,47 @@ app.get('/get', (req,resp) => {
             console.log(result);
             return resp.send(result);
         })
+    })
+})
+
+app.delete('/delete/:id', (req,resp) => {
+    const id_ = req.params.id;
+    conn.connect((err) => {
+        if(err){
+            console.log("ERROR CONNECTING TO DB");
+            resp.send("ERROR CONNECTING TO DB");
+        }else{
+            
+            conn.query("DELETE FROM emp WHERE id = ?",id_, (err,result) => {
+                if(err){
+                    console.log(`ERROR deleting data with id = ${id_} TO DB`);
+                    console.log(err);
+                    resp.send(`ERROR deleting data with id = ${id_} TO DB`);
+                }else{
+                    console.log(result);
+                    resp.send(result);
+                }
+            })
+        }
+    })
+})
+
+app.put('/update', (req,resp) => {
+    const id_ = req.body.id;
+    const salary_ = req.body.salary;
+    conn.connect((err) =>{
+        if(err){
+            console.log("ERROR CONNECTING THE DB!");
+            resp.send({"error":"connot connect to DB"});
+        }else{
+            conn.query("UPDATE emp SET salary = ? WHERE id = ?",[salary_, id_], (err, result) => {
+                if(err){
+                    console.log("ERROR UPDATING THE DB WITH SALARY");
+                    resp.send({"Error":"cannot update"});
+                }else{
+                    resp.status(200).send("successfully updated");
+                }
+            });
+        }
     })
 })

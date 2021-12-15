@@ -8,8 +8,15 @@ function App() {
   const [position, setPosition] = useState("");
   const [salary, setSalary] = useState(0);
   const [employeeList, setEmployeeList] = useState([]);
+  const [newSalary, setNewSalary] = useState(0);
 
-  
+  const deleteEmployee = (id) =>{
+    Axios.delete(`http://localhost:3001/delete/${id}`).then((response) => {
+      setEmployeeList(employeeList.filter((val) => {
+        return val.id != id;
+      }))
+    });
+  }
   const addEmployee = () => {
   
     Axios.post("http://localhost:3001/create", {
@@ -18,7 +25,10 @@ function App() {
       position : position,
       salary: salary
     }).then((response) => {
-       console.log(response.status)})
+
+      console.log(typeof(response.data.id_created));
+      alert(`Employee with id ${response.data.id_created} added`);
+    })
   };
   const getEmployee = () =>{
     Axios.get("http://localhost:3001/get").then((response) => {
@@ -29,13 +39,19 @@ function App() {
       
     });
   }
-
-  function displayData(resObject){
-    const f = document.getElementById("fetchedData");
-    const resObjectList = resObject.map(emp => (
-      "Name: " + emp.NAME + ", id: "+ emp.ID));
-    f.innerHTML = resObjectList;
-  };
+  const updateSalary = (id) =>{
+    Axios.put("http://localhost:3001/update", {salary: newSalary, id: id}).then((response) => {
+      setEmployeeList(employeeList.map((val) => {
+        return val.id == id ? {id : val.id, name: val.name, age: val.age, position: val.position, salary: newSalary} : val;
+      }))
+    });
+  }
+  // function displayData(resObject){
+  //   const f = document.getElementById("fetchedData");
+  //   const resObjectList = resObject.map(emp => (
+  //     "Name: " + emp.name + ", id: "+ emp.id));
+  //   f.innerHTML = resObjectList;
+  // };
   return (
     <div className="App">
       <div className="emp-details-entry">
@@ -94,12 +110,36 @@ function App() {
             {
               employeeList.map((emp, ind)=>{
                 return (
-                  <div className= "fetched-employees">
-                    <h3>ID: {emp.ID}</h3>
-                    <h3>Name: {emp.NAME}</h3>
-                    <h3>Age: {emp.AGE}</h3>
-                    <h3>Position: {emp.POSITION}</h3>
-                    <h3>Salary: {emp.SALARY}</h3>
+                  <div className="fetched-employees">
+                    <div>
+                      <h3>ID: {emp.id}</h3>
+                      <h3>Name: {emp.name}</h3>
+                      <h3>Age: {emp.age}</h3>
+                      <h3>Position: {emp.position}</h3>
+                      <h3>Salary: {emp.salary}</h3>
+                    </div>
+                    <div>
+                      {" "}
+                      <input
+                        type="text"
+                        placeholder="salary"
+                        onChange={(event) => {
+                          setNewSalary(event.target.value);
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          updateSalary(emp.id);
+                        }}
+                      >
+                        update
+                      </button>
+                      <div>
+                        <button onClick={()=>{
+                          deleteEmployee(emp.id);
+                        }}>Delete</button>
+                      </div>
+                    </div>
                   </div>
                 );
               })
